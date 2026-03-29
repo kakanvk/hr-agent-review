@@ -1,0 +1,71 @@
+# Development docker-compose file - with hot-reload support
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0-alpine
+    container_name: hr-agent-mongodb-dev
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: hr-agent
+    volumes:
+      - mongodb_data_dev:/data/db
+    networks:
+      - hr-network-dev
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    image: node:22-alpine
+    container_name: hr-agent-server-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://mongodb:27017/hr-agent
+      JWT_SECRET: dev-secret-key-change-me
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-dev-key}
+      GEMINI_MODEL: gemini-1.5-flash
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dev-id}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-dev-secret}
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - hr-network-dev
+    restart: unless-stopped
+
+  client:
+    image: node:22-alpine
+    container_name: hr-agent-client-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:5000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - hr-network-dev
+    restart: unless-stopped
+
+volumes:
+  mongodb_data_dev:
+
+networks:
+  hr-network-dev:
+    driver: bridge

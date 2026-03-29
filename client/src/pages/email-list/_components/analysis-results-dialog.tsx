@@ -49,6 +49,7 @@ function resultsToCandidateItem(result: AnalysisResult): CandidateItem {
     sourceAttachmentName: result.source_attachment_name || result.sourceAttachmentName || "",
     sourceFileUrl: result.source_file_url || result.sourceFileUrl || "",
     sourceFileMimeType: result.source_file_mime_type || result.sourceFileMimeType || "",
+    createdAt: new Date().toISOString(),
   }
 }
 

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronLeft, ChevronRight, ScanEye, X } from "lucide-react"
 import { DatePicker } from "./date-picker"
-import { format, parse } from "date-fns"
+import { parse } from "date-fns"
 
 type EmailListHeaderProps = {
   page: number
@@ -28,9 +28,6 @@ type EmailListHeaderProps = {
 }
 
 export function EmailListHeader({
-  page,
-  pageSize,
-  resultSizeEstimate,
   isLoading,
   canGoPrev,
   canGoNext,
@@ -69,7 +66,7 @@ export function EmailListHeader({
         <div className="flex items-center gap-1">
           <DatePicker
             value={fromDateObj}
-            onChange={onFromDateChange}
+            onChange={(date) => onFromDateChange?.(date)}
             placeholder="Từ ngày"
           />
           {fromDate && (
@@ -87,7 +84,7 @@ export function EmailListHeader({
         <div className="flex items-center gap-1">
           <DatePicker
             value={toDateObj}
-            onChange={onToDateChange}
+            onChange={(date) => onToDateChange?.(date)}
             placeholder="Đến ngày"
           />
           {toDate && (

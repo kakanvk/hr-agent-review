@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Inbox } from "lucide-react"
 import { toast } from "sonner"
-import { format, parse, isValid } from "date-fns"
+import { format } from "date-fns"
 
 import { API_BASE_URL, AUTH_KEY } from "@/constants/auth"
 import { EmailListHeader } from "@/pages/email-list/_components/email-list-header"
@@ -412,6 +412,7 @@ export function EmailListPage() {
         sourceAttachmentName: data.source_attachment_name || "",
         sourceFileUrl: data.source_file_url || "",
         sourceFileMimeType: data.source_file_mime_type || "",
+        createdAt: data.createdAt || new Date().toISOString(),
       }
 
       setSelectedCandidate(candidate)
