@@ -6,10 +6,15 @@ const listGmailMessagesController = async (req, res, next) => {
     const pageSize = Number(req.query.pageSize) || Number(req.query.maxResults) || 20;
     const safePageSize = Math.min(Math.max(pageSize, 1), 50);
     const pageToken = typeof req.query.pageToken === "string" ? req.query.pageToken : "";
+    const fromDate = typeof req.query.fromDate === "string" ? req.query.fromDate : "";
+    const toDate = typeof req.query.toDate === "string" ? req.query.toDate : "";
+
     const messageResult = await listUserEmails({
       userId: req.user.id,
       maxResults: safePageSize,
       pageToken,
+      fromDate,
+      toDate,
     });
 
     res.json(

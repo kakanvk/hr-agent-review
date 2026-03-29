@@ -18,11 +18,15 @@ const fetchMessagesWithToken = async ({
   accessToken,
   maxResults = 20,
   pageToken = "",
+  queryString = "",
 }) => {
   const listUrl = new URL(GMAIL_LIST_ENDPOINT);
   listUrl.searchParams.set("maxResults", String(maxResults));
   if (pageToken) {
     listUrl.searchParams.set("pageToken", pageToken);
+  }
+  if (queryString) {
+    listUrl.searchParams.set("q", queryString);
   }
 
   const listResponse = await fetch(listUrl.toString(), {
@@ -190,7 +194,7 @@ const fetchAttachmentWithToken = async ({
   };
 };
 
-const listUserEmails = async ({ userId, maxResults = 20, pageToken = "" }) => {
+const listUserEmails = async ({ userId, maxResults = 20, pageToken = "", fromDate = "", toDate = "" }) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError("User not found", 404);
@@ -203,11 +207,26 @@ const listUserEmails = async ({ userId, maxResults = 20, pageToken = "" }) => {
     );
   }
 
+  // Build Gmail API query string for date filtering
+  const queryParts = [];
+  if (fromDate) {
+    queryParts.push(`after:${fromDate}`);
+  }
+  if (toDate) {
+    // Gmail API uses 'before' which is exclusive, so we need to add 1 day
+    const date = new Date(toDate);
+    date.setDate(date.getDate() + 1);
+    const nextDay = date.toISOString().split('T')[0];
+    queryParts.push(`before:${nextDay}`);
+  }
+  const queryString = queryParts.join(" ");
+
   try {
     return await fetchMessagesWithToken({
       accessToken: user.accessToken,
       maxResults,
       pageToken,
+      queryString,
     });
   } catch (error) {
     if (error.message !== "GOOGLE_ACCESS_TOKEN_EXPIRED") {
@@ -219,6 +238,7 @@ const listUserEmails = async ({ userId, maxResults = 20, pageToken = "" }) => {
       accessToken: refreshed.accessToken,
       maxResults,
       pageToken,
+      queryString,
     });
   }
 };
