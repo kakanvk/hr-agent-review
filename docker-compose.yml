@@ -1,0 +1,64 @@
+services:
+  # MongoDB database - commented out, use local MongoDB instead
+  # mongodb:
+  #   image: mongo:7.0-alpine
+  #   container_name: hr-agent-mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_DATABASE: hr-agent
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #     - mongodb_config:/data/configdb
+  #   networks:
+  #     - hr-network
+  #   healthcheck:
+  #     test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 40s
+
+  # Express backend server
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: hr-agent-server
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      GEMINI_DEBUG: ${GEMINI_DEBUG:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:5000/api/auth/google/callback}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173/login}
+      GOOGLE_OAUTH_SCOPES: ${GOOGLE_OAUTH_SCOPES}
+    networks:
+      - hr-network
+    restart: unless-stopped
+
+  # React frontend client
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: hr-agent-client
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+    depends_on:
+      - server
+    networks:
+      - hr-network
+    restart: unless-stopped
+
+networks:
+  hr-network:
+    driver: bridge

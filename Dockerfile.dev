@@ -1,0 +1,60 @@
+# Development docker-compose file
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0-alpine
+    container_name: hr-agent-mongodb-dev
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: hr-agent
+    volumes:
+      - mongodb_data_dev:/data/db
+    networks:
+      - hr-network-dev
+
+  server:
+    image: node:22-alpine
+    container_name: hr-agent-server-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://mongodb:27017/hr-agent
+      JWT_SECRET: dev-secret-key
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - hr-network-dev
+
+  client:
+    image: node:22-alpine
+    container_name: hr-agent-client-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:5000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - hr-network-dev
+
+volumes:
+  mongodb_data_dev:
+
+networks:
+  hr-network-dev:
+    driver: bridge

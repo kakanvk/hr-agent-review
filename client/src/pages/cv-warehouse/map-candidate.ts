@@ -15,5 +15,6 @@ export function mapCandidate(item: Record<string, unknown>): CandidateItem {
     sourceAttachmentName: String(item.source_attachment_name ?? ""),
     sourceFileUrl: String(item.source_file_url ?? ""),
     sourceFileMimeType: String(item.source_file_mime_type ?? ""),
+    createdAt: String(item.createdAt ?? new Date().toISOString()),
   }
 }

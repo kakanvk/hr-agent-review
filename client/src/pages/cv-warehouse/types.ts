@@ -12,4 +12,5 @@ export type CandidateItem = {
   sourceAttachmentName: string
   sourceFileUrl: string
   sourceFileMimeType: string
+  createdAt: string
 }
